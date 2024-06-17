@@ -95,30 +95,29 @@ const ConversationPanel = ({ user, recipient, isOpenConvo, onCloseConvo }) => {
         })
     }
 
-    // Send Typing event
+    // Send typing event
     const sendTypingEvent = () => {
         Echo.private(`messages.${recipient.id}`).whisper('typing', {
             sender_id: user.id
         })
     }
 
-    // Function to listen for typing events
+    // Listen for typing events
     const [isTyping, setIsTyping] = useState(false)
-    const typingTimeoutRef = useRef(null)
     const [typingNotifRecipient, setTypingNotifRecipient] = useState(null)
-    const listenForTypingEvents = () => {
+    const typingTimeoutRef = useRef(null)
+    const listenForTyping = () => {
         Echo.private(`messages.${user.id}`).listenForWhisper(
             'typing',
             event => {
+                console.log(event)
                 setIsTyping(true)
                 setTypingNotifRecipient(event.sender_id)
 
-                // Clear any existing timeout to prevent multiple timers
                 if (typingTimeoutRef.current) {
                     clearTimeout(typingTimeoutRef.current)
                 }
 
-                // Set a new timeout to hide the typing indicator after 2 seconds
                 typingTimeoutRef.current = setTimeout(() => {
                     setIsTyping(false)
                 }, 2000)
@@ -130,7 +129,7 @@ const ConversationPanel = ({ user, recipient, isOpenConvo, onCloseConvo }) => {
         if (recipient && isOpenConvo) {
             // Fetch the messages when the conversation dialog was opened.
             fetchMessages()
-            listenForTypingEvents(recipient.id)
+            listenForTyping()
         } else {
             // Clear the chatThread state when convesation dialog is closed.
             setChatThread([])
@@ -163,12 +162,12 @@ const ConversationPanel = ({ user, recipient, isOpenConvo, onCloseConvo }) => {
                 chatContainer.removeEventListener('scroll', handleScroll)
             }
 
+            // Clear timer when component unmounts.
             if (typingTimeoutRef.current) {
                 clearTimeout(typingTimeoutRef.current)
             }
 
             setMessage('')
-            setTypingNotifRecipient(null)
 
             // Cleanup function, stop listening to messages and leave channel
             // after closing the conversation dialog.

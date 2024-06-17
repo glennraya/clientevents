@@ -1,11 +1,11 @@
 import { HomeIcon, InboxIcon, DocIcon } from '@/Components/Icons'
-import { Avatar, ScrollShadow, Switch, cn } from '@nextui-org/react'
+import { Avatar, ScrollShadow } from '@nextui-org/react'
 import { useEffect, useRef, useState } from 'react'
 import NavLink from '@/Components/NavLink'
 import ProfileDropdown from '@/Components/ProfileDropdown'
-import TypingIndicator from '@/Components/TypingIndicator'
 import ConversationPanel from '@/Components/ConversationPanel'
 import ElasticScroll from '@/Components/ElasticScroll'
+import TypingIndicator from '@/Components/TypingIndicator'
 
 const AuthenticatedLayout = ({ user, children }) => {
     // Emit an event to the conversation dialog to close it.
@@ -22,29 +22,28 @@ const AuthenticatedLayout = ({ user, children }) => {
     }
 
     // Listen for typing events.
+    // Listen for typing events
     const [isTyping, setIsTyping] = useState(false)
-    const typingTimeoutRef = useRef(null)
     const [typingNotifRecipient, setTypingNotifRecipient] = useState(null)
-    const listenForTypingEvents = () => {
+    const typingTimeoutRef = useRef(null)
+    const listenForTyping = () => {
         Echo.private(`messages.${user.id}`).listenForWhisper(
             'typing',
             event => {
+                console.log(event)
                 setIsTyping(true)
                 setTypingNotifRecipient(event.sender_id)
 
-                // Clear any existing timeout to prevent multiple timers
                 if (typingTimeoutRef.current) {
                     clearTimeout(typingTimeoutRef.current)
                 }
 
-                // Set a new timeout to hide the typing indicator after 2 seconds
                 typingTimeoutRef.current = setTimeout(() => {
                     setIsTyping(false)
                 }, 2000)
             }
         )
     }
-    // End: Listen for typing events.
 
     const [team, setTeam] = useState([])
     useEffect(() => {
@@ -52,10 +51,9 @@ const AuthenticatedLayout = ({ user, children }) => {
             setTeam(response.data)
         })
 
-        listenForTypingEvents(user.id)
+        listenForTyping()
 
         return () => {
-            // Clear the timer when the component unmounts.
             if (typingTimeoutRef.current) {
                 clearTimeout(typingTimeoutRef.current)
             }
