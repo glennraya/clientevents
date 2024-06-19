@@ -22,7 +22,6 @@ const AuthenticatedLayout = ({ user, children }) => {
     }
 
     // Listen for typing events.
-    // Listen for typing events
     const [isTyping, setIsTyping] = useState(false)
     const [typingNotifRecipient, setTypingNotifRecipient] = useState(null)
     const typingTimeoutRef = useRef(null)
